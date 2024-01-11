@@ -1,0 +1,40 @@
+version: 0.2
+
+env:
+  parameter-store:
+    DOCKER_REGISTRY_USERNAME: /myapp/docker-credentials/username
+    DOCKER_REGISTRY_PASSWORD: /myapp/docker-credentials/password
+    DOCKER_REGISTRY_URL: /myapp/docker-registry/url
+    GITHUB_TOKEN: /myapp/github-credentials/token
+    GITHUB_USERNAME: /myapp/github-credentials/username
+    GIT_REPO_NAME: /myapp/github-repo/name
+    BUILD_NUMBER: "${CODEBUILD_RESOLVED_SOURCE_VERSION}"
+phases:
+  install:
+    runtime-versions:
+      node: 14
+  pre_build:
+    commands:
+      - echo "Installing dependencies..."
+      - npm install
+  build:
+    commands:
+      - echo "Running tests..."
+      - cd React_To_Do_list/To_do_list_app/
+      - echo "Building Docker image..."
+      - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin "$DOCKER_REGISTRY_URL"
+      - docker build -t "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/To_do_list_app:${BUILD_NUMBER}" .
+      - docker push "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/To_do_list_app:${BUILD_NUMBER}"
+  post_build:
+    commands:
+      - echo "Updating Deployment File..."
+      - git config user.email "abhishek.xyz@gmail.com"
+      - git config user.name "idio14"
+      - sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" To_Do_list/Manifests/deployment.yml
+      - git add To_Do_list/Manifests/deployment.yml
+      - git commit -m "updated build number"
+      - git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
+artifacts:
+  files:
+    - '**/*'
+  base-directory: ../To_do_list_app
