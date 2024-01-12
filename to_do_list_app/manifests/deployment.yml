@@ -15,7 +15,7 @@ spec:
         app: to_do_list-app
     spec:
       containers:
-      - name: To_do_list-app
-        image: To_do_list_app:replaceImageTag
+      - name: to_do_list-app
+        image: to_do_list_app:replaceImageTag
         ports:
         - containerPort: 8080
