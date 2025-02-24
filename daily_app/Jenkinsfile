@@ -18,6 +18,7 @@ pipeline {
                     sh 'docker --version'
                     sh 'whoami'
                     sh "ls -ltr"
+                    sh 'cd daily_app'
                     sh "docker build -t ${DOCKER_IMAGE} ."
                     def dockerImage = docker.image("${DOCKER_IMAGE}")
                     sh "docker tag dvrdinesh/rmkvdemo:angular${BUILD_NUMBER} dvrdinesh/rmkvdemo:angular${BUILD_NUMBER}"
